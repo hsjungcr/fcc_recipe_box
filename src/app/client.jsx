@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { Accordion, Button, ButtonToolbar, Modal, ModalHeader, ModalTitle, ModalBody, ModalFooter, Panel } from 'react-bootstrap';
 import Form, { Input, Fieldset } from 'react-bootstrap-form';
 import IngredientList from './IngredientList';
-
+import NavHeader from './NavHeader';
 
 var defaultRecipe = [
     {
@@ -41,10 +41,23 @@ var defaultRecipe = [
         "1 cup ice"
       ],
       quote: "Mint chocolate ice cream for adult."
+    },
+    {
+      drinkname: "AMF",
+      recipe: [
+        "1/2 oz vodka",
+        "1/2 oz rum",
+        "1/2 oz tequila",
+        "1/2 oz gin",
+        "1/2 oz blue curacao liqueur",
+        "2 oz sweet and sour mix",
+        "2 oz lemon-lime soda"
+      ],
+      quote: "If you think about it, things about Mexico is wider known than things about Spain"
     }
   ]
-var recipes = typeof localStorage["_hsjungcr_recipes2"] != "undefined" && localStorage["_hsjungcr_recipes2"] != "undefined"
-  ? JSON.parse(localStorage["_hsjungcr_recipes2"])
+var recipes = typeof localStorage["_hsjungcr_recipes"] != "undefined" && localStorage["_hsjungcr_recipes"] != "undefined"
+  ? JSON.parse(localStorage["_hsjungcr_recipes"])
   : defaultRecipe,
   // Define global title and ingredients
   // Eww but just for this once.
@@ -67,12 +80,18 @@ class App extends React.Component{
     }
     return(
       <div>
-      <Accordion style={justForCursor}>
-        {this.props.data}
-      </Accordion>
-      <RecipeAdd drinkName = {globalDrinkName} ingredients = {globalIngredients} quote = {globalQuote} />
-      <Button className="restore-default" bsStyle="danger" bsSize="large" onClick={this.restoreDefault.bind(this)}>Restore Default</Button>
+      <NavHeader />
+      <div className="container">
+      <div className="well">
+          <Accordion style={justForCursor}>
+          {this.props.data}
+          </Accordion>
+        <RecipeAdd drinkName = {globalDrinkName} ingredients = {globalIngredients} quote = {globalQuote} />
+        {' '}{/*this is fine*/}
+      <Button className="restore-default" bsStyle="danger" onClick={this.restoreDefault.bind(this)}>Restore Default</Button>
+      </div>
     </div>
+  </div>
     )
   }
 }
@@ -137,10 +156,29 @@ class RecipeAdd extends React.Component{
         quote : globalQuote
       });
     }
-    console.log(this.state)
   }
   add(){
-
+    let drinkName = this.state.drinkName;
+    let ingredients = this.state.ingredients.split(',').map((items)=>{
+      return items.trim()
+    });
+    console.log(ingredients);
+    let quote = this.state.quote;
+    let exists = false;
+    for(var i in recipes){
+      if(recipes[i].drinkname == drinkName){
+        recipes[i].recipe = ingredients;
+        recipes[i].quote = quote;
+        exists = true;
+        break;
+      }
+    }
+    if(!exists){
+      if(drinkName.length < 1) drinkName = "Untitled";
+      recipes.push({drinkname : drinkName, recipe: ingredients, quote:quote});
+    }
+    update();
+    this.close();
   }
   render(){
     var nameStyle ={
@@ -164,7 +202,7 @@ class RecipeAdd extends React.Component{
     }
     return(
       <div style={divInline}>
-      <Button bsStyle="primary" bsSize="large" onClick={this.open.bind(this)} id="show">
+      <Button bsStyle="primary" onClick={this.open.bind(this)} id="show">
         Add Recipe
       </Button>
       <Modal show={this.state.showModal} onHide={this.close.bind(this)}>
@@ -199,7 +237,7 @@ class RecipeAdd extends React.Component{
         </form>
         </ModalBody>
         <ModalFooter>
-          <Button onClick={this.add} bsStyle="primary" id="addButton">{this.state.addOrEdit}</Button>
+          <Button onClick={this.add.bind(this)} bsStyle="primary" id="addButton">{this.state.addOrEdit}</Button>
           <Button onClick={this.close.bind(this)}>Close</Button>
         </ModalFooter>
       </Modal>
@@ -210,7 +248,7 @@ class RecipeAdd extends React.Component{
 
 
 function update(){
-  localStorage.setItem("_hsjungcr_recipes2", JSON.stringify(recipes));
+  localStorage.setItem("_hsjungcr_recipes", JSON.stringify(recipes));
   var rows = [];
   for (var i=0; i < recipes.length; i++) {
     rows.push(
@@ -223,8 +261,4 @@ function update(){
   }
   ReactDOM.render(<App data={rows} />,document.getElementById("app"));
 }
-
-
 update();
-var globalVars = [globalDrinkName, globalIngredients, globalQuote];
-export default globalVars;
