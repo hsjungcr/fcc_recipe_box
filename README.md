@@ -1,2 +1,5 @@
 # fcc_recipe_box
-This one does not use any jQuery
+
+Took alot from the FCC Recipe Box example, but this one does not use any jQuery
+
+
